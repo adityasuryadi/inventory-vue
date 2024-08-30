@@ -1,9 +1,8 @@
-import axios from 'axios';
-
+import api from "./api"
 
 const getEmployees = async () => {
-    const response = await axios.get('http://inventory.test/api/employees');
-    return response.data.data
+    const response = await api.get('/api/employees')
+    return response
 }
 
 export {getEmployees}

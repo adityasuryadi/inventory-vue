@@ -1,12 +1,12 @@
 <script>
 // import { getEmployees } from '@/api/employee';
 import { getEmployees } from '@/api/employee';
+import {getProducts} from '@/api/product';
 import axios from 'axios';
 import Swal from 'sweetalert2/dist/sweetalert2';
 export default {
     data: () => ({
         alert:false,
-        dialog: false,
         selectedEmployee: null,
         requestDate: null,
         employess: [],
@@ -27,6 +27,13 @@ export default {
             required: value => !!value || 'Required.',
         },errors:null
     }),
+    props: {
+        dialog: {
+        type: Boolean,
+        required: true,
+        default: false
+        }
+    },
     methods: {
         async postRequestItem() {   
           try {
@@ -36,10 +43,10 @@ export default {
               "carts":this.carts
             })
             if (response.status === 200) {
-                this.dialog = false
+                this.$emit('close',false)
                 Swal.fire({
-                    title: "Good job!",
-                    text: "You clicked the button!",
+                    title: "Saved",
+                    text: "Data Berahsil di Simpan",
                     icon: "success"
                 });
             }
@@ -49,10 +56,10 @@ export default {
         },
         async getEmployees() {
             const response = await getEmployees()
-            this.employess = response
+            this.employess = response.data.data
         },
         async getProducts() {
-            const response = await axios.get('http://inventory.test/api/products')
+            const response = await getProducts()
             this.products = response.data.data
         },
         async addToCart() {
@@ -106,35 +113,24 @@ export default {
         isValid() {
                 return this.carts.every(item => item?.product?.stock > item?.quantity);// return false;
         },
+            isDialogOpen: {
+            get() {
+                return this.dialog;
+            },
+            set (value) {
+                this.$emit('close',value)
+            }
+         },
     },
+    emitClose(val = false) {
+      this.$emit('input', val);
+    }
 }
 </script>
 
 <template>
-    <v-app-bar></v-app-bar>
-
     <div class="pa-4 text-center">
-        <v-dialog v-model="dialog" max-width="900">
-            <template v-slot:activator="{ props: activatorProps }">
-                <v-btn class="text-none font-weight-regular" prepend-icon="mdi-account" text="Tambah Barang"
-                  
-                    variant="tonal" v-bind="activatorProps"></v-btn>
-            </template>
-
-            <v-alert
-            v-model="alert"
-            border="start"
-            close-label="Close Alert"
-            color="deep-purple-accent-4"
-            title="Closable Alert"
-            variant="tonal"
-            closable
-            >
-            Aenean imperdiet. Quisque id odio. Cras dapibus. Pellentesque ut neque. Cras dapibus.
-
-            Vivamus consectetuer hendrerit lacus. Sed mollis, eros et ultrices tempus, mauris ipsum aliquam libero, non adipiscing dolor urna a orci. Sed mollis, eros et ultrices tempus, mauris ipsum aliquam libero, non adipiscing dolor urna a orci. Curabitur blandit mollis lacus. Curabitur ligula sapien, tincidunt non, euismod vitae, posuere imperdiet, leo.
-            </v-alert>
-
+        <v-dialog v-model="isDialogOpen" max-width="900">
             <v-card prepend-icon="mdi-account" title="Create Penerimaan Barang">
                 <v-form ref="form" v-model="valid" @submit.prevent="postRequestItem" lazy-validation>
                 <v-card-text>
@@ -161,7 +157,6 @@ export default {
                         </v-col>
                     </v-row>
 
-                    <!-- <small class="text-caption text-medium-emphasis">*indicates required field</small> -->
                 </v-card-text>
 
                 <v-divider></v-divider>
@@ -227,7 +222,7 @@ export default {
                 <v-card-actions>
                     <v-spacer></v-spacer>
 
-                    <v-btn text="Close" variant="plain" @click="dialog = false"></v-btn>
+                    <v-btn text="Close" variant="plain" @click="isDialogOpen = false"></v-btn>
 
                     <v-btn color="primary" text="Save" variant="tonal" type="submit" :disabled="!isValid"></v-btn>
                 </v-card-actions>

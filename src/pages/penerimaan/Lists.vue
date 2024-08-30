@@ -1,6 +1,7 @@
 <script>
-import axios from 'axios'
+import {getRequestItems} from '@/api/requestItem.js'
 import AppBar from '@/components/AppBar.vue'
+import Create from '@/pages/penerimaan/Create.vue'
 export default {
     data () {
       return {
@@ -12,23 +13,34 @@ export default {
         ],
         items:[],
         search:"",
+        isDialogOpen:false
       } 
     },
     methods: {
       async getRequestItems() {
-        const response = await axios.get('http://inventory.test/api/requestitems')
+        const response = await getRequestItems()
         this.items = response.data.data
+      },
+      closeDialog(){
+        this.getRequestItems()
+        this.isDialogOpen = false
       }
     },  
     mounted() {
       this.getRequestItems()
-    },  
+    },
+    components: {
+      FormCreate:Create
+    }  
   }
 </script>
 
 <template>
   <app-bar></app-bar>
-  <div class="pa-4 text-center">
+  <div class="pa-4">
+    <form-create :dialog="isDialogOpen" @close="closeDialog"></form-create>
+    <v-btn class="text-none font-weight-regular" prepend-icon="mdi-plus" text="Tambah Barang"
+  variant="tonal" @click="isDialogOpen = true"></v-btn>
   <v-card>
   <v-card-title>
         <v-text-field
