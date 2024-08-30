@@ -8,13 +8,20 @@
 // Composables
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import Penerimaan from '@/pages/penerimaan/Create.vue'
+import Lists from '@/pages/penerimaan/Lists.vue'
 // import { routes } from 'vue-router/auto-routes'
 
 const routes = [
   {
     path: '/penerimaan',
     name: 'Penerimaan',
-    component: () => Penerimaan,}
+    component: () => Penerimaan,
+  },
+  {
+      path: '/lists',
+      name: 'PenerimaanDetail',
+      component: () => Lists,
+  }
 ]
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

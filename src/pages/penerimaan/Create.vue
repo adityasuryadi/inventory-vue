@@ -2,14 +2,19 @@
 // import { getEmployees } from '@/api/employee';
 import { getEmployees } from '@/api/employee';
 import axios from 'axios';
+import Swal from 'sweetalert2/dist/sweetalert2';
 export default {
     data: () => ({
+        alert:false,
         dialog: false,
         selectedEmployee: null,
+        requestDate: null,
         employess: [],
         selectedEmpployeeName: "",
         selectedEmployeeDepartement: "",
+        requestDate:null,
         products: [],
+        valid:false,
         carts: [{
             product: null,
             unit: null,
@@ -18,8 +23,30 @@ export default {
             quantity: 1,
             description: "",
         }],
+        rules:{
+            required: value => !!value || 'Required.',
+        },errors:null
     }),
     methods: {
+        async postRequestItem() {   
+          try {
+            const response = await axios.post('http://inventory.test/api/requestitem', {
+              "nik":this.selectedEmployee.nik,
+              "request_date":this.requestDate,
+              "carts":this.carts
+            })
+            if (response.status === 200) {
+                this.dialog = false
+                Swal.fire({
+                    title: "Good job!",
+                    text: "You clicked the button!",
+                    icon: "success"
+                });
+            }
+          } catch (error) {
+            this.errors = error.response.data.data
+          } 
+        },
         async getEmployees() {
             const response = await getEmployees()
             this.employess = response
@@ -77,10 +104,7 @@ export default {
     },
     computed: {
         isValid() {
-            // if (this.carts.length > 0){
-                return this.carts.every(item => item?.product?.stock > item?.quantity);
-            // }
-            // return false;
+                return this.carts.every(item => item?.product?.stock > item?.quantity);// return false;
         },
     },
 }
@@ -93,14 +117,32 @@ export default {
         <v-dialog v-model="dialog" max-width="900">
             <template v-slot:activator="{ props: activatorProps }">
                 <v-btn class="text-none font-weight-regular" prepend-icon="mdi-account" text="Tambah Barang"
+                  
                     variant="tonal" v-bind="activatorProps"></v-btn>
             </template>
 
+            <v-alert
+            v-model="alert"
+            border="start"
+            close-label="Close Alert"
+            color="deep-purple-accent-4"
+            title="Closable Alert"
+            variant="tonal"
+            closable
+            >
+            Aenean imperdiet. Quisque id odio. Cras dapibus. Pellentesque ut neque. Cras dapibus.
+
+            Vivamus consectetuer hendrerit lacus. Sed mollis, eros et ultrices tempus, mauris ipsum aliquam libero, non adipiscing dolor urna a orci. Sed mollis, eros et ultrices tempus, mauris ipsum aliquam libero, non adipiscing dolor urna a orci. Curabitur blandit mollis lacus. Curabitur ligula sapien, tincidunt non, euismod vitae, posuere imperdiet, leo.
+            </v-alert>
+
             <v-card prepend-icon="mdi-account" title="Create Penerimaan Barang">
+                <v-form ref="form" v-model="valid" @submit.prevent="postRequestItem" lazy-validation>
                 <v-card-text>
                     <v-row dense>
                         <v-col cols="12" sm="4">
                             <v-autocomplete :items="employess" item-title="nik" label="NIK" v-model="selectedEmployee"
+                            :rules="[rules.required]"
+                            :error-messages="errors?.nik"
                                 return-object auto-select-first></v-autocomplete>
                         </v-col>
 
@@ -115,11 +157,11 @@ export default {
                         </v-col>
 
                         <v-col cols="12" sm="4">
-                            <v-date-input label="Date input"></v-date-input>
+                            <v-date-input label="Date input" v-model="requestDate" :error-messages="errors?.request_date" required></v-date-input>
                         </v-col>
                     </v-row>
 
-                    <small class="text-caption text-medium-emphasis">*indicates required field</small>
+                    <!-- <small class="text-caption text-medium-emphasis">*indicates required field</small> -->
                 </v-card-text>
 
                 <v-divider></v-divider>
@@ -166,6 +208,7 @@ export default {
                                 <td>{{ carts[index]?.product?.location }}</td>
                                 <td>{{ carts[index]?.product?.stock }}</td>
                                 <td><v-text-field v-model="carts[index].quantity"
+                                    :error-messages="errors?.[`carts.${index}.quantity`]"
                                         ></v-text-field></td>
                                 <td>{{ carts[index]?.product?.unit }}</td>
                                 <td><v-text-field></v-text-field></td>
@@ -186,9 +229,16 @@ export default {
 
                     <v-btn text="Close" variant="plain" @click="dialog = false"></v-btn>
 
-                    <v-btn color="primary" text="Save" variant="tonal" @click="dialog = false" :disabled="!isValid"></v-btn>
+                    <v-btn color="primary" text="Save" variant="tonal" type="submit" :disabled="!isValid"></v-btn>
                 </v-card-actions>
+                </v-form>
             </v-card>
         </v-dialog>
     </div>
 </template>
+
+<style>
+.swal2-container {
+  z-index: 10000;
+}
+</style>
