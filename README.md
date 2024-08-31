@@ -45,3 +45,8 @@ Start the server
   npm run start
 ```
 
+Akses App
+
+```bash
+http://localhost:3000/lists
+```
