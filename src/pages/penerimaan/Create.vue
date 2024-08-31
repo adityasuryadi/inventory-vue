@@ -2,6 +2,7 @@
 // import { getEmployees } from '@/api/employee';
 import { getEmployees } from '@/api/employee';
 import {getProducts} from '@/api/product';
+import { postRequestItem } from '@/api/requestItem';
 import axios from 'axios';
 import Swal from 'sweetalert2/dist/sweetalert2';
 export default {
@@ -35,15 +36,29 @@ export default {
         }
     },
     methods: {
+        clearForm(){
+            this.selectedEmployee = null
+            this.requestDate = null
+            this.carts = [{
+                product: null,
+                unit: null,
+                location: null,
+                stock: null,
+                quantity: 1,
+                description: "",
+            }]
+        },
         async postRequestItem() {   
           try {
-            const response = await axios.post('http://inventory.test/api/requestitem', {
+            const params = {
               "nik":this.selectedEmployee.nik,
               "request_date":this.requestDate,
               "carts":this.carts
-            })
+            }
+            const response = await postRequestItem(params)
             if (response.status === 200) {
                 this.$emit('close',false)
+                this.clearForm()
                 Swal.fire({
                     title: "Saved",
                     text: "Data Berahsil di Simpan",
